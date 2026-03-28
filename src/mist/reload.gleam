@@ -1,3 +1,4 @@
+import filepath
 import gleam/bit_array
 import gleam/bytes_tree
 import gleam/erlang/process
@@ -9,6 +10,7 @@ import gleam/string
 import gleam/string_tree
 import mist
 import radiate
+import simplifile
 
 type Message(t) {
   Register(subscriber: process.Subject(t), reply: process.Subject(Nil))
@@ -33,9 +35,12 @@ pub fn wrap(handler) {
     })
     |> actor.start()
 
+  let assert Ok(current_directory) = simplifile.current_directory()
+  let src_directory = filepath.join(current_directory, "src")
+
   let _ =
     radiate.new()
-    |> radiate.add_dir("src")
+    |> radiate.add_dir(src_directory)
     |> radiate.on_reload(fn(_state: Nil, _file) {
       actor.send(registry.data, Broadcast(Reloaded))
     })
